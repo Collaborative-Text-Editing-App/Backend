@@ -80,7 +80,6 @@ public class EditorController {
     }
 
     @MessageMapping("/document/undo")
-    @SendTo("/topic/document-updates")
     public Document undo(TextOperationMessage message) {
         // Call your service to perform undo
         documentService.undo(message.getDocumentId());
@@ -90,7 +89,6 @@ public class EditorController {
     }
 
     @MessageMapping("/document/redo")
-    @SendTo("/topic/document-updates")
     public Document redo(TextOperationMessage message) {
         // Call your service to perform undo
         documentService.redo(message.getDocumentId());
