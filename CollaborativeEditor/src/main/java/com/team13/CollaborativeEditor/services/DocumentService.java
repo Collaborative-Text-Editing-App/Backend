@@ -40,7 +40,7 @@ public class DocumentService {
             doc.updateLastModified();
             
             // Add operation to history for undo/redo
-            Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
+            Operation op = new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis());
             doc.addToHistory(op);
         }
     }
