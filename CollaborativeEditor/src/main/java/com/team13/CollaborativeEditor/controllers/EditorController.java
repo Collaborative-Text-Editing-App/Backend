@@ -27,7 +27,7 @@ public class EditorController {
     
     @MessageMapping("/document.edit")
     @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
-    public TextOperationMessage handleTextOperation(TextOperationMessage message) {
+    public void handleTextOperation(TextOperationMessage message) {
         System.out.println("Received TextOperationMessage with character: " + message.getCharacter());
         Document doc = documentService.getDocument(TEST_DOCUMENT_ID);
         if (doc == null) {
@@ -62,7 +62,7 @@ public class EditorController {
             broadcastDocumentUpdate(doc);
         }
         
-        return message;
+        return;
     }
     
     @MessageMapping("/cursor.update")
