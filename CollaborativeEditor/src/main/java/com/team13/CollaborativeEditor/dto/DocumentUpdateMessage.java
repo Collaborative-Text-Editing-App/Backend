@@ -13,7 +13,6 @@ public class DocumentUpdateMessage {
     private String content;
     private List<User> activeUsers;
     private Timestamp lastModified;
-
     public DocumentUpdateMessage(){}
 
     public DocumentUpdateMessage(String id, String editorCode, String viewerCode, String content,
