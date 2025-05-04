@@ -5,21 +5,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+
 public class User {
-    private String userId;
-    private String username;
-    private String role;
-    private Set<String> documentIds; // Changed to support multiple documents
+    private int userId;
+    private UserRole role;
     private Cursor cursor;
     private boolean connected;
     private Timestamp lastSeen;
 
-    public User(String username, String role) {
-        this.userId = UUID.randomUUID().toString();
-        this.username = username;
+    public User(int id, UserRole role) {
+        this.userId = id;
         this.role = role;
-        this.documentIds = new HashSet<>();
-        this.cursor = new Cursor(0, userId);
+        this.cursor = new Cursor(0);
         this.connected = true;
         this.lastSeen = new Timestamp(System.currentTimeMillis());
     }
@@ -28,39 +25,18 @@ public class User {
         // For serialization/deserialization
     }
 
-    // Add document access
-    public void addDocument(String documentId) {
-        this.documentIds.add(documentId);
-    }
-
-    // Check document access
-    public boolean hasAccessToDocument(String documentId) {
-        return this.documentIds.contains(documentId);
-    }
-
     // Getters and Setters
-    public String getUserId() {
+    public int getUserId() {
         return userId;
     }
 
-    public String getUsername() {
-        return username;
-    }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserRole role) {
         this.role = role;
-    }
-
-    public Set<String> getDocumentIds() {
-        return documentIds;
     }
 
     public Cursor getCursor() {
@@ -85,12 +61,5 @@ public class User {
 
     public void updateLastSeen() {
         this.lastSeen = new Timestamp(System.currentTimeMillis());
-    }
-
-    public void setActiveDocument(String documentId) {
-        this.addDocument(documentId);
-        if (this.cursor != null) {
-            this.cursor.setDocument(documentId);
-        }
     }
 }
