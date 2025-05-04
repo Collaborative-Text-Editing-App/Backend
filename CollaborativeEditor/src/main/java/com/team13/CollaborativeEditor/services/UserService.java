@@ -10,11 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserService {
     private final Map<String, User> users = new ConcurrentHashMap<>();
     
-    public User createUser(String username, String role) {
-        User user = new User(username, role);
-        users.put(user.getUserId(), user);
-        return user;
-    }
+//    public User createUser(UserRole role) {
+//        User user = new User(role);
+//        users.put(user.getUserId(), user);
+//        return user;
+//    }
     
     public User getUser(String id) {
         return users.get(id);
@@ -25,7 +25,6 @@ public class UserService {
         if (user != null) {
             Cursor cursor = user.getCursor();
             cursor.setPosition(position);
-            cursor.setDocument(documentId);
             user.updateLastSeen();
         }
     }
@@ -33,8 +32,8 @@ public class UserService {
     public void addUserToDocument(String userId, String documentId, boolean isEditor) {
         User user = getUser(userId);
         if (user != null) {
-            user.addDocument(documentId);
-            user.getCursor().setDocument(documentId);
+//            user.addDocument(documentId);
+//            user.getCursor().setDocument(documentId);
         }
     }
 }

@@ -1,21 +1,23 @@
 package com.team13.CollaborativeEditor.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import com.team13.CollaborativeEditor.models.Cursor;
+import com.team13.CollaborativeEditor.models.User;
 
 public class DocumentUpdateMessage {
     private String id;
     private String editorCode;
     private String viewerCode;
     private String content;
-    private Map<String, Cursor> activeUsers;
+    private List<User> activeUsers;
     private Timestamp lastModified;
 
     public DocumentUpdateMessage(){}
 
     public DocumentUpdateMessage(String id, String editorCode, String viewerCode, String content,
-                                 Map<String, Cursor> activeUsers, Timestamp lastModified) {
+                                 List<User> activeUsers, Timestamp lastModified) {
         this.id = id;
         this.editorCode = editorCode;
         this.viewerCode = viewerCode;
@@ -41,11 +43,11 @@ public class DocumentUpdateMessage {
         this.content = content;
     }
 
-    public Map<String, Cursor> getActiveUsers() {
+    public List<User> getActiveUsers() {
         return activeUsers;
     }
 
-    public void setActiveUsers(Map<String, Cursor> activeUsers) {
+    public void setActiveUsers(List<User> activeUsers) {
         this.activeUsers = activeUsers;
     }
 

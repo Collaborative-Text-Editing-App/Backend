@@ -17,18 +17,34 @@ public class DocumentService {
     
     public DocumentUpdateMessage createDocument() {
         Document doc = new Document();
+        User user = new User(doc.getActiveUsers().size(),  UserRole.EDITOR);
+        doc.addUser(user);
         documents.put(doc.getId(), doc);
-        System.out.println("NEW DOCUMENT CREATED AT THE SERVICE");
-        System.out.println(doc.getId());
-        System.out.println(doc.getCreatedAt());
-        System.out.println(doc.getEditorCode());
-        System.out.println(doc.getViewerCode());
+        return toDTO(doc);
+    }
 
+    public DocumentUpdateMessage importDocument(String content) {
+        Document doc = new Document();
+        User user = new User(doc.getActiveUsers().size(),  UserRole.EDITOR);
+        doc.addUser(user);
+
+        // Insert content into the CRDT character by character.
+        CRDT crdt = doc.getCrdt();
+        Node parent = crdt.getRoot();
+        int insertedBy = 0;
+
+        // We'll insert each char; parent advances for sequential insert.
+        for (char c : content != null ? content.toCharArray() : new char[0]) {
+            Node node = crdt.insert(parent, c, insertedBy, System.currentTimeMillis());
+            parent = node; // move parent to newly inserted node
+        }
+
+        documents.put(doc.getId(), doc);
         return toDTO(doc);
     }
 
     public DocumentUpdateMessage toDTO(Document doc) {
-        String content = doc.getCrdt().toPlainText(); // Convert CRDT to string for frontend
+        String content = doc.getCrdt().getVisibleText(); // Convert CRDT to string for frontend
         Timestamp lastModified = doc.getLastModified();
 
         return new DocumentUpdateMessage(

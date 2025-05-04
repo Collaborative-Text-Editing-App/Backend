@@ -1,17 +1,12 @@
 package com.team13.CollaborativeEditor.models;
 
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Document {
     private final String id;
     private final CRDT crdt;
-    private final Map<String, Cursor> activeUsers; // needs to be implemented
+    private final List<User> activeUsers;
     private final Timestamp createdAt;
     private Timestamp lastModified;
     private final String editorCode;
@@ -20,21 +15,22 @@ public class Document {
     public Document() {
         this.id = UUID.randomUUID().toString();
         this.crdt = new CRDT(0); // System user
-        this.activeUsers = new HashMap<>();
+        this.activeUsers = new ArrayList<>();
         this.createdAt = new Timestamp(System.currentTimeMillis());
         this.lastModified = this.createdAt;
         this.editorCode = generateCode();
         this.viewerCode = generateCode();
     }
 
-    public void addUser(Cursor cursor) {
-        activeUsers.put(cursor.getUserId(), cursor);
+    public void addUser(User user) {
+        // Replace existing user if already present
+        activeUsers.removeIf(u -> u.getUserId() == user.getUserId());
+        activeUsers.add(user);
     }
 
-    public void removeUser(String userId) {
-        activeUsers.remove(userId);
+    public void removeUser(int userId) {
+        activeUsers.removeIf(user -> user.getUserId() == userId);
     }
-
 
     public void updateLastModified() {
         this.lastModified = new Timestamp(System.currentTimeMillis());
@@ -49,7 +45,7 @@ public class Document {
         return crdt;
     }
 
-    public Map<String, Cursor> getActiveUsers() {
+    public List<User> getActiveUsers() {
         return activeUsers;
     }
 

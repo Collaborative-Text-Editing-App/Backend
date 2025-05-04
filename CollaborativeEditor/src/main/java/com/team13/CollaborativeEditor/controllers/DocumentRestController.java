@@ -1,6 +1,7 @@
 package com.team13.CollaborativeEditor.controllers;
 
 import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
+import com.team13.CollaborativeEditor.dto.ImportDocumentRequest;
 import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,12 @@ public class DocumentRestController {
         DocumentUpdateMessage doc = documentService.createDocument();
         return ResponseEntity.ok(doc);
     }
+
+    @PostMapping("/import")
+    public ResponseEntity<DocumentUpdateMessage> importDocument(@RequestBody ImportDocumentRequest request) {
+        DocumentUpdateMessage doc = documentService.importDocument(request.getContent());
+        return ResponseEntity.ok(doc);
+    }
     
     @GetMapping
     public ResponseEntity<List<Document>> getAllDocuments() {
@@ -47,12 +54,11 @@ public class DocumentRestController {
         
         Document doc = documentService.getDocumentByCode(code);
         if (doc != null) {
-            User user = userService.createUser(username, 
-                code.equals(doc.getEditorCode()) ? "EDITOR" : "VIEWER");
-            
-            userService.addUserToDocument(user.getUserId(), doc.getId(), 
-                code.equals(doc.getEditorCode()));
-                
+//            User user = userService.createUser(code.equals(doc.getEditorCode()) ? UserRole.EDITOR : UserRole.VIEWER);
+//
+//            userService.addUserToDocument(user.getUserId(), doc.getId(),
+//                code.equals(doc.getEditorCode()));
+//
 //            if (code.equals(doc.getEditorCode())) {
 //                doc.authorizeUser(user.getUserId());
 //            }
