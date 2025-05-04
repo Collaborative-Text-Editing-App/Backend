@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class EditorController {
+    private static final String TEST_DOCUMENT_ID = "test-doc-123"; // Hardcoded ID for testing
 
     @Autowired
     private DocumentService documentService;
@@ -25,10 +26,15 @@ public class EditorController {
     private SimpMessagingTemplate messagingTemplate;
     
     @MessageMapping("/document.edit")
-    @SendTo("/topic/document/{documentId}")
+    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public TextOperationMessage handleTextOperation(TextOperationMessage message) {
-        Document doc = documentService.getDocument(message.getDocumentId());
-        
+        System.out.println("Received TextOperationMessage with character: " + message.getCharacter());
+        Document doc = documentService.getDocument(TEST_DOCUMENT_ID);
+        if (doc == null) {
+
+            doc = documentService.createDocument("TESTING");
+        }
+
         if (doc != null) {
             if ("INSERT".equals(message.getOperationType())) {
                 Node parent = null;
@@ -36,7 +42,7 @@ public class EditorController {
                     parent = doc.getCrdt().findNodeAtPosition(message.getPosition() - 1);
                 }
                 documentService.insertCharacter(
-                    message.getDocumentId(),
+                    TEST_DOCUMENT_ID,
                     message.getUserId(),
                     message.getCharacter(),
                     parent
@@ -45,7 +51,7 @@ public class EditorController {
                 Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition());
                 if (nodeToDelete != null) {
                     documentService.deleteCharacter(
-                        message.getDocumentId(),
+                        doc.getId(),
                         message.getUserId(),
                         nodeToDelete
                     );
@@ -60,7 +66,7 @@ public class EditorController {
     }
     
     @MessageMapping("/cursor.update")
-    @SendTo("/topic/document/{documentId}")
+    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public CursorUpdateMessage handleCursorUpdate(CursorUpdateMessage message) {
         userService.updateCursor(
             message.getUserId(),
@@ -73,12 +79,23 @@ public class EditorController {
     }
     
     private void broadcastDocumentUpdate(Document doc) {
+        // print out document data for testing
+        System.out.println("Document ID: " + doc.getId());
+        System.out.println("Document title: " + doc.getTitle());
+        System.out.println("Document content: " + doc.getContent());
+        System.out.println("Document crdt: " + doc.getCrdt().getVisibleText());
+        System.out.println("Document active users: " + doc.getActiveUsers());
+        System.out.println("Document last modified: " + doc.getLastModified());
+        System.out.println("Document editor code: " + doc.getEditorCode());
+        System.out.println("Document viewer code: " + doc.getViewerCode());
+
         DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
         updateMsg.setDocumentId(doc.getId());
-        updateMsg.setContent(doc.getContent());
-        updateMsg.setCursors(doc.getActiveUsers().values().stream()
-            .collect(Collectors.toMap(User::getUserId, User::getCursor)));
-            
+        updateMsg.setContent(doc.getCrdt().getVisibleText().toString());
+
+//        updateMsg.setCursors(doc.getActiveUsers().values().stream()
+//            .collect(Collectors.toMap(User::getUserId, User::getCursor)));
+//
         messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
     }
 }
