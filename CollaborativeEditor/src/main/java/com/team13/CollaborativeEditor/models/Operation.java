@@ -1,4 +1,4 @@
-package com.team13.CollaborativeEditor.model;
+package com.team13.CollaborativeEditor.models;
 
 public class Operation {
     private OperationType type;
