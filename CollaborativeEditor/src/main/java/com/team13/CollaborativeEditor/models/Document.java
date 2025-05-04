@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Stack;
 
 public class Document {
     private String id;
@@ -18,6 +19,8 @@ public class Document {
     private String viewerCode;
     private List<Operation> history = new ArrayList<>();
     private int historyPointer = -1;
+    private Stack<Operation> undoStack = new Stack<>();
+    private Stack<Operation> redoStack = new Stack<>();
 
     public Document(String title) {
         this.id = UUID.randomUUID().toString();
@@ -113,22 +116,30 @@ public class Document {
         historyPointer = history.size() - 1;
     }
 
-    public Operation undo() {
-        if (historyPointer >= 0) {
-            return history.get(historyPointer--);
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            Operation op = undoStack.pop();
+            // apply inverse of op
+            redoStack.push(op);
         }
-        return null;
     }
 
-    public Operation redo() {
-        if (historyPointer < history.size() - 1) {
-            return history.get(++historyPointer);
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Operation op = redoStack.pop();
+            // re-apply op
+            undoStack.push(op);
         }
-        return null;
     }
 
     // Add to Document class
     public boolean canUserEdit(String userId) {
         return authorizedUsers.contains(userId);
+    }
+
+    public void performOperation(Operation op) {
+        undoStack.push(op);
+        redoStack.clear();
+        // apply op to document
     }
 }
