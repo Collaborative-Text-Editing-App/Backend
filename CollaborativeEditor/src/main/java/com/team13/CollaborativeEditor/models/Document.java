@@ -109,11 +109,10 @@ public class Document {
 
     public void addToHistory(Operation operation) {
         // Clear any redoable operations
-        while (history.size() > historyPointer + 1) {
-            history.remove(history.size() - 1);
+        while (!redoStack.empty()) {
+            redoStack.pop();
         }
-        history.add(operation);
-        historyPointer = history.size() - 1;
+        undoStack.push(operation);
     }
 
     public void undo() {
