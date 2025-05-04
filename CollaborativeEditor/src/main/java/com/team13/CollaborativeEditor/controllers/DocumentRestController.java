@@ -1,5 +1,6 @@
 package com.team13.CollaborativeEditor.controllers;
 
+import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
 import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,8 @@ public class DocumentRestController {
     private UserService userService;
     
     @PostMapping
-    public ResponseEntity<Document> createDocument(@RequestBody Map<String, String> payload) {
-        String title = payload.getOrDefault("title", "Untitled");
-        Document doc = documentService.createDocument(title);
+    public ResponseEntity<DocumentUpdateMessage> createDocument() {
+        DocumentUpdateMessage doc = documentService.createDocument();
         return ResponseEntity.ok(doc);
     }
     
@@ -53,11 +53,11 @@ public class DocumentRestController {
             userService.addUserToDocument(user.getUserId(), doc.getId(), 
                 code.equals(doc.getEditorCode()));
                 
-            if (code.equals(doc.getEditorCode())) {
-                doc.authorizeUser(user.getUserId());
-            }
+//            if (code.equals(doc.getEditorCode())) {
+//                doc.authorizeUser(user.getUserId());
+//            }
             
-            doc.addUser(user);
+            //doc.addUser(user);
             
             return ResponseEntity.ok(doc);
         }

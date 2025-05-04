@@ -1,5 +1,7 @@
 package com.team13.CollaborativeEditor.models;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,50 +9,35 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Document {
-    private String id;
-    private String title;
-    private CRDT crdt;
-    private Map<String, User> activeUsers;
-    private List<String> authorizedUsers;
-    private long createdAt;
-    private long lastModified;
-    private String editorCode;
-    private String viewerCode;
-    private List<Operation> history = new ArrayList<>();
-    private int historyPointer = -1;
+    private final String id;
+    private final CRDT crdt;
+    private final Map<String, Cursor> activeUsers; // needs to be implemented 
+    private final Timestamp createdAt;
+    private Timestamp lastModified;
+    private final String editorCode;
+    private final String viewerCode;
 
-    public Document(String title) {
+    public Document() {
         this.id = UUID.randomUUID().toString();
-        this.title = title;
         this.crdt = new CRDT(0); // System user
         this.activeUsers = new HashMap<>();
-        this.authorizedUsers = new ArrayList<>();
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = new Timestamp(System.currentTimeMillis());
         this.lastModified = this.createdAt;
         this.editorCode = generateCode();
         this.viewerCode = generateCode();
     }
 
-    public void addUser(User user) {
-        activeUsers.put(user.getUserId(), user);
+    public void addUser(Cursor cursor) {
+        activeUsers.put(cursor.getUserId(), cursor);
     }
 
     public void removeUser(String userId) {
         activeUsers.remove(userId);
     }
 
-    public void authorizeUser(String userId) {
-        if (!authorizedUsers.contains(userId)) {
-            authorizedUsers.add(userId);
-        }
-    }
-
-    public boolean isAuthorized(String userId) {
-        return authorizedUsers.contains(userId);
-    }
 
     public void updateLastModified() {
-        this.lastModified = System.currentTimeMillis();
+        this.lastModified = new Timestamp(System.currentTimeMillis());
     }
 
     // Getters and Setters
@@ -58,31 +45,19 @@ public class Document {
         return id;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public CRDT getCrdt() {
         return crdt;
     }
 
-    public Map<String, User> getActiveUsers() {
+    public Map<String, Cursor> getActiveUsers() {
         return activeUsers;
     }
 
-    public List<String> getAuthorizedUsers() {
-        return authorizedUsers;
-    }
-
-    public long getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
 
-    public long getLastModified() {
+    public Timestamp getLastModified() {
         return lastModified;
     }
 
@@ -102,33 +77,5 @@ public class Document {
     // Add to Document class
     public String getContent() {
         return this.crdt.getVisibleText();
-    }
-
-    public void addToHistory(Operation operation) {
-        // Clear any redoable operations
-        while (history.size() > historyPointer + 1) {
-            history.remove(history.size() - 1);
-        }
-        history.add(operation);
-        historyPointer = history.size() - 1;
-    }
-
-    public Operation undo() {
-        if (historyPointer >= 0) {
-            return history.get(historyPointer--);
-        }
-        return null;
-    }
-
-    public Operation redo() {
-        if (historyPointer < history.size() - 1) {
-            return history.get(++historyPointer);
-        }
-        return null;
-    }
-
-    // Add to Document class
-    public boolean canUserEdit(String userId) {
-        return authorizedUsers.contains(userId);
     }
 }

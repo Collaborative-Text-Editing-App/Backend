@@ -122,4 +122,9 @@ public class CRDT {
         
         return null;
     }
+
+    // TODO: CONVERT CRDT TO STRING
+    public String toPlainText() {
+        return null;
+    }
 }

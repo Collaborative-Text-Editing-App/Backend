@@ -53,7 +53,7 @@ public class EditorController {
             }
             
             // Send updated document content to all clients
-            broadcastDocumentUpdate(doc);
+            //broadcastDocumentUpdate(doc);
         }
         
         return message;
@@ -72,13 +72,13 @@ public class EditorController {
         return message;
     }
     
-    private void broadcastDocumentUpdate(Document doc) {
-        DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
-        updateMsg.setDocumentId(doc.getId());
-        updateMsg.setContent(doc.getContent());
-        updateMsg.setCursors(doc.getActiveUsers().values().stream()
-            .collect(Collectors.toMap(User::getUserId, User::getCursor)));
-            
-        messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
-    }
+//    private void broadcastDocumentUpdate(Document doc) {
+//        DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
+//        updateMsg.setDocumentId(doc.getId());
+//        updateMsg.setContent(doc.getContent());
+//        updateMsg.setCursors(doc.getActiveUsers().values().stream()
+//            .collect(Collectors.toMap(User::getUserId, User::getCursor)));
+//
+//        messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
+//    }
 }
