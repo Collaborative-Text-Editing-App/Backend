@@ -1,5 +1,8 @@
 package com.team13.CollaborativeEditor.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +10,9 @@ public class Node {
     private String id;
     private int insertedBy;
     private char character;
+    @JsonManagedReference
     private List<Node> children;
+    @JsonBackReference
     private Node parent;
     private long timestamp;
     private boolean tombstone;

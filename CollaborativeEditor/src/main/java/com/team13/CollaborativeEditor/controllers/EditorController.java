@@ -9,11 +9,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class EditorController {
+    private static final String TEST_DOCUMENT_ID = "test-doc-123"; // Hardcoded ID for testing
 
     @Autowired
     private DocumentService documentService;
@@ -25,10 +27,15 @@ public class EditorController {
     private SimpMessagingTemplate messagingTemplate;
     
     @MessageMapping("/document.edit")
-    @SendTo("/topic/document/{documentId}")
-    public TextOperationMessage handleTextOperation(TextOperationMessage message) {
-        Document doc = documentService.getDocument(message.getDocumentId());
-        
+    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
+    public void handleTextOperation(TextOperationMessage message) {
+        System.out.println("Received TextOperationMessage with character: " + message.getCharacter());
+        Document doc = documentService.getDocument(TEST_DOCUMENT_ID);
+        if (doc == null) {
+
+            doc = documentService.createDocument("TESTING");
+        }
+
         if (doc != null) {
             if ("INSERT".equals(message.getOperationType())) {
                 Node parent = null;
@@ -36,7 +43,7 @@ public class EditorController {
                     parent = doc.getCrdt().findNodeAtPosition(message.getPosition() - 1);
                 }
                 documentService.insertCharacter(
-                    message.getDocumentId(),
+                    TEST_DOCUMENT_ID,
                     message.getUserId(),
                     message.getCharacter(),
                     parent
@@ -45,7 +52,7 @@ public class EditorController {
                 Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition());
                 if (nodeToDelete != null) {
                     documentService.deleteCharacter(
-                        message.getDocumentId(),
+                        doc.getId(),
                         message.getUserId(),
                         nodeToDelete
                     );
@@ -56,11 +63,11 @@ public class EditorController {
             //broadcastDocumentUpdate(doc);
         }
         
-        return message;
+        return;
     }
     
     @MessageMapping("/cursor.update")
-    @SendTo("/topic/document/{documentId}")
+    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public CursorUpdateMessage handleCursorUpdate(CursorUpdateMessage message) {
         userService.updateCursor(
             message.getUserId(),
@@ -71,14 +78,41 @@ public class EditorController {
         // Broadcast cursor update
         return message;
     }
+
+    @MessageMapping("/document/undo")
+    public void undo(TextOperationMessage message) {
+        // Call your service to perform undo
+        documentService.undo(message.getDocumentId());
+        // Return the updated document or a status message
+        broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
+    }
+
+    @MessageMapping("/document/redo")
+    public void redo(TextOperationMessage message) {
+        // Call your service to perform undo
+        documentService.redo(message.getDocumentId());
+        // Return the updated document or a status message
+        broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
+    }
     
-//    private void broadcastDocumentUpdate(Document doc) {
-//        DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
-//        updateMsg.setDocumentId(doc.getId());
-//        updateMsg.setContent(doc.getContent());
+    private void broadcastDocumentUpdate(Document doc) {
+        // print out document data for testing
+        System.out.println("Document ID: " + doc.getId());
+        System.out.println("Document title: " + doc.getTitle());
+        System.out.println("Document content: " + doc.getContent());
+        System.out.println("Document crdt: " + doc.getCrdt().getVisibleText());
+        System.out.println("Document active users: " + doc.getActiveUsers());
+        System.out.println("Document last modified: " + doc.getLastModified());
+        System.out.println("Document editor code: " + doc.getEditorCode());
+        System.out.println("Document viewer code: " + doc.getViewerCode());
+
+        DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
+        updateMsg.setDocumentId(doc.getId());
+        updateMsg.setContent(doc.getCrdt().getVisibleText().toString());
+
 //        updateMsg.setCursors(doc.getActiveUsers().values().stream()
 //            .collect(Collectors.toMap(User::getUserId, User::getCursor)));
 //
-//        messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
-//    }
+        messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
+    }
 }

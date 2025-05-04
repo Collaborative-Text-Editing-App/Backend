@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Stack;
 
 public class Document {
     private final String id;
@@ -16,6 +17,9 @@ public class Document {
     private Timestamp lastModified;
     private final String editorCode;
     private final String viewerCode;
+    private String title;
+    private Stack<Operation> undoStack = new Stack<>();
+    private Stack<Operation> redoStack = new Stack<>();
 
     public Document() {
         this.id = UUID.randomUUID().toString();
@@ -29,6 +33,10 @@ public class Document {
 
     public void addUser(Cursor cursor) {
         activeUsers.put(cursor.getUserId(), cursor);
+    }
+    
+    public void setDocumentId(String id){
+        this.id = id;
     }
 
     public void removeUser(String userId) {
@@ -77,5 +85,64 @@ public class Document {
     // Add to Document class
     public String getContent() {
         return this.crdt.getVisibleText();
+    }
+
+    public void addToHistory(Operation operation) {
+        // Clear any redoable operations
+        while (!redoStack.empty()) {
+            redoStack.pop();
+        }
+        undoStack.push(operation);
+    }
+
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            Operation op = undoStack.pop();
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                redoStack.push(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                redoStack.push(newop);
+            }
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Operation op = redoStack.pop();
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                undoStack.push(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                undoStack.push(newop);
+            }
+        }
+    }
+
+    // Add to Document class
+    public boolean canUserEdit(String userId) {
+        return authorizedUsers.contains(userId);
+    }
+
+    public void performOperation(Operation op) {
+        undoStack.push(op);
+        redoStack.clear();
+        // apply op to document
     }
 }
