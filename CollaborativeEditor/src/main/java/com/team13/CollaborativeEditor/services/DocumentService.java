@@ -14,7 +14,7 @@ public class DocumentService {
     
     public Document createDocument(String title) {
         Document doc = new Document(title);
-        doc.setDocumentId("test--123");
+        doc.setDocumentId("test-doc-123");
         documents.put("test-doc-123", doc);
         return doc;
     }

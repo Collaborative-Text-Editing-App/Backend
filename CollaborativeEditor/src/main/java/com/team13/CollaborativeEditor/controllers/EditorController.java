@@ -80,21 +80,19 @@ public class EditorController {
     }
 
     @MessageMapping("/document/undo")
-    public Document undo(TextOperationMessage message) {
+    public void undo(TextOperationMessage message) {
         // Call your service to perform undo
         documentService.undo(message.getDocumentId());
         // Return the updated document or a status message
         broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
-        return documentService.getDocument(message.getDocumentId());
     }
 
     @MessageMapping("/document/redo")
-    public Document redo(TextOperationMessage message) {
+    public void redo(TextOperationMessage message) {
         // Call your service to perform undo
         documentService.redo(message.getDocumentId());
         // Return the updated document or a status message
         broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
-        return documentService.getDocument(message.getDocumentId());
     }
     
     private void broadcastDocumentUpdate(Document doc) {
