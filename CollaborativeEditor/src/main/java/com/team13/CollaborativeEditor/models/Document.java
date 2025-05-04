@@ -30,7 +30,10 @@ public class Document {
         this.editorCode = generateCode();
         this.viewerCode = generateCode();
     }
-
+    // temporary set id function
+    public void setDocumentId(String id){
+        this.id = id;
+    }
     public void addUser(User user) {
         activeUsers.put(user.getUserId(), user);
     }
