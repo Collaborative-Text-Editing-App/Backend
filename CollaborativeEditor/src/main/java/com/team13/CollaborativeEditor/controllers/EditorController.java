@@ -15,7 +15,6 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class EditorController {
-    private static final String TEST_DOCUMENT_ID = "test-doc-123"; // Hardcoded ID for testing
 
     @Autowired
     private DocumentService documentService;
@@ -27,14 +26,9 @@ public class EditorController {
     private SimpMessagingTemplate messagingTemplate;
     
     @MessageMapping("/document.edit")
-    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public void handleTextOperation(TextOperationMessage message) {
         System.out.println("Received TextOperationMessage with character: " + message.getCharacter());
-        Document doc = documentService.getDocument(TEST_DOCUMENT_ID);
-        if (doc == null) {
-
-            doc = documentService.createDocument("TESTING");
-        }
+        Document doc = documentService.getDocument(message.getDocumentId());
 
         if (doc != null) {
             if ("INSERT".equals(message.getOperationType())) {
@@ -43,7 +37,7 @@ public class EditorController {
                     parent = doc.getCrdt().findNodeAtPosition(message.getPosition() - 1);
                 }
                 documentService.insertCharacter(
-                    TEST_DOCUMENT_ID,
+                    doc.getId(),
                     message.getUserId(),
                     message.getCharacter(),
                     parent
@@ -60,14 +54,13 @@ public class EditorController {
             }
             
             // Send updated document content to all clients
-            //broadcastDocumentUpdate(doc);
+            broadcastDocumentUpdate(doc);
         }
         
         return;
     }
     
     @MessageMapping("/cursor.update")
-    @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public CursorUpdateMessage handleCursorUpdate(CursorUpdateMessage message) {
         userService.updateCursor(
             message.getUserId(),
@@ -107,7 +100,7 @@ public class EditorController {
         System.out.println("Document viewer code: " + doc.getViewerCode());
 
         DocumentUpdateMessage updateMsg = new DocumentUpdateMessage();
-        updateMsg.setDocumentId(doc.getId());
+        updateMsg.setId(doc.getId());
         updateMsg.setContent(doc.getCrdt().getVisibleText().toString());
 
 //        updateMsg.setCursors(doc.getActiveUsers().values().stream()

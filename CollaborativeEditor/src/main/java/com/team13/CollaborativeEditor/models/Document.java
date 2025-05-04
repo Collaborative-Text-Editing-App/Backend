@@ -34,10 +34,7 @@ public class Document {
     public void addUser(Cursor cursor) {
         activeUsers.put(cursor.getUserId(), cursor);
     }
-    
-    public void setDocumentId(String id){
-        this.id = id;
-    }
+
 
     public void removeUser(String userId) {
         activeUsers.remove(userId);
@@ -87,6 +84,9 @@ public class Document {
         return this.crdt.getVisibleText();
     }
 
+    public String getTitle() {
+        return title;
+    }
     public void addToHistory(Operation operation) {
         // Clear any redoable operations
         while (!redoStack.empty()) {
@@ -133,11 +133,6 @@ public class Document {
                 undoStack.push(newop);
             }
         }
-    }
-
-    // Add to Document class
-    public boolean canUserEdit(String userId) {
-        return authorizedUsers.contains(userId);
     }
 
     public void performOperation(Operation op) {

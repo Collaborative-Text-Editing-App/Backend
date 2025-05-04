@@ -11,7 +11,6 @@ public class DocumentUpdateMessage {
     private String content;
     private Map<String, Cursor> activeUsers;
     private Timestamp lastModified;
-
     public DocumentUpdateMessage(){}
 
     public DocumentUpdateMessage(String id, String editorCode, String viewerCode, String content,
