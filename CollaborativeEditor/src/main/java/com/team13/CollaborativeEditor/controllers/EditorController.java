@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -76,6 +77,24 @@ public class EditorController {
         
         // Broadcast cursor update
         return message;
+    }
+
+    @MessageMapping("/document/undo")
+    @SendTo("/topic/document-updates")
+    public Document undo(TextOperationMessage message) {
+        // Call your service to perform undo
+        documentService.undo(message.getDocumentId());
+        // Return the updated document or a status message
+        return documentService.getDocument(message.getDocumentId());
+    }
+
+    @MessageMapping("/document/redo")
+    @SendTo("/topic/document-updates")
+    public Document redo(TextOperationMessage message) {
+        // Call your service to perform undo
+        documentService.redo(message.getDocumentId());
+        // Return the updated document or a status message
+        return documentService.getDocument(message.getDocumentId());
     }
     
     private void broadcastDocumentUpdate(Document doc) {

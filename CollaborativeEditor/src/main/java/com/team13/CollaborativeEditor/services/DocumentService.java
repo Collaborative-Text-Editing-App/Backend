@@ -14,7 +14,7 @@ public class DocumentService {
     
     public Document createDocument(String title) {
         Document doc = new Document(title);
-        doc.setDocumentId("test-doc-123");
+        doc.setDocumentId("test--123");
         documents.put("test-doc-123", doc);
         return doc;
     }
@@ -48,14 +48,28 @@ public class DocumentService {
     
     public void deleteCharacter(String documentId, String userId, Node node) {
         Document doc = getDocument(documentId);
-        if (doc != null && doc.isAuthorized(userId)) {
+        if (doc != null) {
             doc.getCrdt().delete(node);
             doc.updateLastModified();
             
             // Add operation to history for undo/redo
             int userIdInt = Integer.parseInt(userId.hashCode() + "");
-            Operation op = new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis());
+            Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
             doc.addToHistory(op);
+        }
+    }
+
+    public void undo(String documentId) {
+        Document doc = getDocument(documentId);
+        if (doc != null) {
+            doc.undo();
+        }
+    }
+
+    public void redo(String documentId) {
+        Document doc = getDocument(documentId);
+        if (doc != null) {
+            doc.redo();
         }
     }
 }

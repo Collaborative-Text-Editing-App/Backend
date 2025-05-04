@@ -121,16 +121,40 @@ public class Document {
     public void undo() {
         if (!undoStack.isEmpty()) {
             Operation op = undoStack.pop();
-            // apply inverse of op
-            redoStack.push(op);
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                redoStack.push(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                redoStack.push(newop);
+            }
         }
     }
 
     public void redo() {
         if (!redoStack.isEmpty()) {
             Operation op = redoStack.pop();
-            // re-apply op
-            undoStack.push(op);
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                undoStack.push(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                undoStack.push(newop);
+            }
         }
     }
 

@@ -5,6 +5,7 @@ public class Operation {
     private Node node;
     private int userId;
     private long timestamp;
+    private Node parent;
 
     public Operation(OperationType type, Node node, int userId, long timestamp) {
         this.type = type;
@@ -27,5 +28,9 @@ public class Operation {
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public Node getParent() {
+        return parent;
     }
 } 
