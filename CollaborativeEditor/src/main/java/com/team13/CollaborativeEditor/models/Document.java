@@ -11,7 +11,7 @@ import java.util.UUID;
 public class Document {
     private final String id;
     private final CRDT crdt;
-    private final Map<String, Cursor> activeUsers; // needs to be implemented 
+    private final Map<String, Cursor> activeUsers; // needs to be implemented
     private final Timestamp createdAt;
     private Timestamp lastModified;
     private final String editorCode;
