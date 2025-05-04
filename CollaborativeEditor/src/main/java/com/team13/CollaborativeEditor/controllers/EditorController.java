@@ -12,6 +12,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class EditorController {
@@ -29,7 +31,7 @@ public class EditorController {
     @MessageMapping("/document.edit")
     @SendTo("/topic/document/test-doc-123") // Hardcoded destination for testing
     public void handleTextOperation(TextOperationMessage message) {
-        System.out.println("Received TextOperationMessage with character: " + message.getCharacter());
+        System.out.println("Received TextOperationMessage with text: " + message.getText());
         Document doc = documentService.getDocument(TEST_DOCUMENT_ID);
         if (doc == null) {
 
@@ -45,18 +47,33 @@ public class EditorController {
                 documentService.insertCharacter(
                     TEST_DOCUMENT_ID,
                     message.getUserId(),
-                    message.getCharacter(),
+                    message.getText(),
                     parent
                 );
             } else if ("DELETE".equals(message.getOperationType())) {
-                Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition());
-                if (nodeToDelete != null) {
+                List<Node> nodesToDelete = new ArrayList<>();
+                if (message.getLength() == 1) {
+                    Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition());
+                    nodesToDelete.add(nodeToDelete);
+                    if (nodeToDelete != null) {
+                        documentService.deleteCharacter(
+                            doc.getId(),
+                            message.getUserId(),
+                            nodesToDelete
+                        );
+                    }
+                } else {
+                    for (int i = 0; i < message.getLength(); i++) {
+                        Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition() + i);
+                        nodesToDelete.add(nodeToDelete);
+                    }
                     documentService.deleteCharacter(
                         doc.getId(),
                         message.getUserId(),
-                        nodeToDelete
+                        nodesToDelete
                     );
                 }
+
             }
             
             // Send updated document content to all clients
