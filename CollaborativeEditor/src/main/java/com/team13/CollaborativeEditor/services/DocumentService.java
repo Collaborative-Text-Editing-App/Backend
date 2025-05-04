@@ -1,8 +1,10 @@
 package com.team13.CollaborativeEditor.services;
 
+import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
 import com.team13.CollaborativeEditor.models.*;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,13 +12,49 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class DocumentService {
+    // {"id": DocObject}
     private final Map<String, Document> documents = new ConcurrentHashMap<>();
     
-    public Document createDocument(String title) {
-        Document doc = new Document(title);
-        doc.setDocumentId("test-doc-123");
-        documents.put("test-doc-123", doc);
-        return doc;
+    public DocumentUpdateMessage createDocument() {
+        Document doc = new Document();
+        User user = new User(doc.getActiveUsers().size(),  UserRole.EDITOR);
+        doc.addUser(user);
+        documents.put(doc.getId(), doc);
+        return toDTO(doc);
+    }
+
+    public DocumentUpdateMessage importDocument(String content) {
+        Document doc = new Document();
+        User user = new User(doc.getActiveUsers().size(),  UserRole.EDITOR);
+        doc.addUser(user);
+
+        // Insert content into the CRDT character by character.
+        CRDT crdt = doc.getCrdt();
+        Node parent = crdt.getRoot();
+        int insertedBy = 0;
+
+        // We'll insert each char; parent advances for sequential insert.
+        for (char c : content != null ? content.toCharArray() : new char[0]) {
+            Node node = crdt.insert(parent, c, insertedBy, System.currentTimeMillis());
+            parent = node; // move parent to newly inserted node
+        }
+
+        documents.put(doc.getId(), doc);
+        return toDTO(doc);
+    }
+
+    public DocumentUpdateMessage toDTO(Document doc) {
+        String content = doc.getCrdt().getVisibleText(); // Convert CRDT to string for frontend
+        Timestamp lastModified = doc.getLastModified();
+
+        return new DocumentUpdateMessage(
+                doc.getId(),
+                doc.getEditorCode(),
+                doc.getViewerCode(),
+                content,
+                doc.getActiveUsers(),
+                lastModified
+        );
     }
     
     public Document getDocument(String id) {

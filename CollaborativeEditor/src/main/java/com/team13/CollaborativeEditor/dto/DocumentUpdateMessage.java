@@ -1,20 +1,37 @@
 package com.team13.CollaborativeEditor.dto;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import com.team13.CollaborativeEditor.models.Cursor;
+import com.team13.CollaborativeEditor.models.User;
 
 public class DocumentUpdateMessage {
-    private String documentId;
+    private String id;
+    private String editorCode;
+    private String viewerCode;
     private String content;
-    private Map<String, Cursor> cursors;
-    
-    // Getters and setters
-    public String getDocumentId() {
-        return documentId;
+    private List<User> activeUsers;
+    private Timestamp lastModified;
+    public DocumentUpdateMessage(){}
+
+    public DocumentUpdateMessage(String id, String editorCode, String viewerCode, String content,
+                                 List<User> activeUsers, Timestamp lastModified) {
+        this.id = id;
+        this.editorCode = editorCode;
+        this.viewerCode = viewerCode;
+        this.content = content;
+        this.activeUsers = activeUsers;
+        this.lastModified = lastModified;
     }
 
-    public void setDocumentId(String documentId) {
-        this.documentId = documentId;
+    // Getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String documentId) {
+        this.id = documentId;
     }
 
     public String getContent() {
@@ -25,11 +42,16 @@ public class DocumentUpdateMessage {
         this.content = content;
     }
 
-    public Map<String, Cursor> getCursors() {
-        return cursors;
+    public List<User> getActiveUsers() {
+        return activeUsers;
     }
 
-    public void setCursors(Map<String, Cursor> cursors) {
-        this.cursors = cursors;
+    public void setActiveUsers(List<User> activeUsers) {
+        this.activeUsers = activeUsers;
     }
+
+    public String getViewerCode(){return this.viewerCode;}
+    public String getEditorCode(){return this.editorCode;}
+    public Timestamp getLastModified(){return this.lastModified;}
+    public void setLastModified(Timestamp lastModified){this.lastModified = lastModified; }
 }

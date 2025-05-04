@@ -1,5 +1,7 @@
 package com.team13.CollaborativeEditor.controllers;
 
+import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
+import com.team13.CollaborativeEditor.dto.ImportDocumentRequest;
 import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +22,14 @@ public class DocumentRestController {
     private UserService userService;
     
     @PostMapping
-    public ResponseEntity<Document> createDocument(@RequestBody Map<String, String> payload) {
-        String title = payload.getOrDefault("title", "Untitled");
-        Document doc = documentService.createDocument(title);
+    public ResponseEntity<DocumentUpdateMessage> createDocument() {
+        DocumentUpdateMessage doc = documentService.createDocument();
+        return ResponseEntity.ok(doc);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<DocumentUpdateMessage> importDocument(@RequestBody ImportDocumentRequest request) {
+        DocumentUpdateMessage doc = documentService.importDocument(request.getContent());
         return ResponseEntity.ok(doc);
     }
     
@@ -47,17 +54,16 @@ public class DocumentRestController {
         
         Document doc = documentService.getDocumentByCode(code);
         if (doc != null) {
-            User user = userService.createUser(username, 
-                code.equals(doc.getEditorCode()) ? "EDITOR" : "VIEWER");
+//            User user = userService.createUser(code.equals(doc.getEditorCode()) ? UserRole.EDITOR : UserRole.VIEWER);
+//
+//            userService.addUserToDocument(user.getUserId(), doc.getId(),
+//                code.equals(doc.getEditorCode()));
+//
+//            if (code.equals(doc.getEditorCode())) {
+//                doc.authorizeUser(user.getUserId());
+//            }
             
-            userService.addUserToDocument(user.getUserId(), doc.getId(), 
-                code.equals(doc.getEditorCode()));
-                
-            if (code.equals(doc.getEditorCode())) {
-                doc.authorizeUser(user.getUserId());
-            }
-            
-            doc.addUser(user);
+            //doc.addUser(user);
             
             return ResponseEntity.ok(doc);
         }
