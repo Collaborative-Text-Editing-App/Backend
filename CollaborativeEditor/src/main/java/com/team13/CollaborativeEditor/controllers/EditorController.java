@@ -85,6 +85,7 @@ public class EditorController {
         // Call your service to perform undo
         documentService.undo(message.getDocumentId());
         // Return the updated document or a status message
+        broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
         return documentService.getDocument(message.getDocumentId());
     }
 
@@ -94,6 +95,7 @@ public class EditorController {
         // Call your service to perform undo
         documentService.redo(message.getDocumentId());
         // Return the updated document or a status message
+        broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
         return documentService.getDocument(message.getDocumentId());
     }
     
