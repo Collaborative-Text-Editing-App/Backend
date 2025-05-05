@@ -2,6 +2,7 @@ package com.team13.CollaborativeEditor.controllers;
 
 import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
 import com.team13.CollaborativeEditor.dto.ImportDocumentRequest;
+import com.team13.CollaborativeEditor.dto.JoinDocumentResponse;
 import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,6 @@ public class DocumentRestController {
     @Autowired
     private DocumentService documentService;
     
-    @Autowired
-    private UserService userService;
-    
     @PostMapping
     public ResponseEntity<DocumentUpdateMessage> createDocument() {
         DocumentUpdateMessage doc = documentService.createDocument();
@@ -32,19 +30,30 @@ public class DocumentRestController {
         DocumentUpdateMessage doc = documentService.importDocument(request.getContent());
         return ResponseEntity.ok(doc);
     }
-    
+
+    @GetMapping("/{code}")
+    public ResponseEntity<JoinDocumentResponse> joinDocument(@PathVariable String code) {
+        System.out.println(code);
+        Document doc = documentService.getDocumentByCode(code);
+        if (doc == null) return ResponseEntity.notFound().build();
+
+        UserRole role = null;
+        if (code.equals(doc.getEditorCode())) {
+            role = UserRole.EDITOR;
+        } else if (code.equals(doc.getViewerCode())) {
+            role = UserRole.VIEWER;
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+        documentService.joinDocument(doc, role);
+        DocumentUpdateMessage msg = documentService.toDTO(doc);
+        JoinDocumentResponse response = new JoinDocumentResponse(msg, role);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<List<Document>> getAllDocuments() {
         return ResponseEntity.ok(documentService.getAllDocuments());
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Document> getDocument(@PathVariable String id) {
-        Document doc = documentService.getDocument(id);
-        if (doc != null) {
-            return ResponseEntity.ok(doc);
-        }
-        return ResponseEntity.notFound().build();
     }
     
     @PostMapping("/join")
