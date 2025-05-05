@@ -33,11 +33,17 @@ public class Document {
         // Replace existing user if already present
         activeUsers.removeIf(u -> u.getUserId() == user.getUserId());
         activeUsers.add(user);
+        
+        // Initialize undo/redo stacks for the new user
+        undoStacks.putIfAbsent(user.getUserId(), new Stack<>());
+        redoStacks.putIfAbsent(user.getUserId(), new Stack<>());
     }
 
 
     public void removeUser(int userId) {
         activeUsers.removeIf(user -> user.getUserId() == userId);
+        undoStacks.remove(userId);
+        redoStacks.remove(userId);
     }
 
     public void updateLastModified() {
