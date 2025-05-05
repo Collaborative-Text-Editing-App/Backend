@@ -7,16 +7,15 @@ import java.util.UUID;
 
 public class User {
     private int userId;
+    private String id;
     private UserRole role;
     private Cursor cursor;
-    private boolean connected;
     private Timestamp lastSeen;
 
     public User(int id, UserRole role) {
         this.userId = id;
         this.role = role;
         this.cursor = new Cursor(0);
-        this.connected = true;
         this.lastSeen = new Timestamp(System.currentTimeMillis());
     }
 
@@ -27,6 +26,12 @@ public class User {
     // Getters and Setters
     public int getUserId() {
         return userId;
+    }
+    public void setUserId(String userId) {
+        this.id = userId;
+    }
+    public String getId() {
+        return id;
     }
 
 
@@ -45,15 +50,6 @@ public class User {
     public void setCursor(Cursor cursor) {
         this.cursor = cursor;
     }
-
-    public boolean isConnected() {
-        return connected;
-    }
-
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
-
     public Timestamp getLastSeen() {
         return lastSeen;
     }
