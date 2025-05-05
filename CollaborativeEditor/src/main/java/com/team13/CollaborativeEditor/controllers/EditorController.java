@@ -5,6 +5,7 @@ import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,6 @@ public class EditorController {
 
     @Autowired
     private DocumentService documentService;
-    
-    @Autowired
-    private UserService userService;
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -72,21 +70,40 @@ public class EditorController {
             
             // Send updated document content to all clients
             broadcastDocumentUpdate(doc);
+            // send update to users
         }
         
         return;
     }
-    
+
     @MessageMapping("/cursor.update")
-    public CursorUpdateMessage handleCursorUpdate(CursorUpdateMessage message) {
-        userService.updateCursor(
-            message.getUserId(),
-            message.getPosition(),
-            message.getDocumentId()
-        );
-        
-        // Broadcast cursor update
-        return message;
+    public void handleCursorUpdate(CursorUpdateMessage message) {
+        // Update the cursor position for this user on the server:
+        Document doc = documentService.getDocument(message.getDocumentId());
+
+        User targetUser = doc.getActiveUsers()
+                .stream()
+                .filter(user -> Objects.equals(user.getId(), message.getUserId()))
+                .findFirst()
+                .orElse(null);
+
+        assert targetUser != null;
+        Cursor cursor = targetUser.getCursor();
+        cursor.setPosition(message.getPosition());
+        targetUser.setCursor(cursor);
+
+
+        activeUsersByDoc.computeIfAbsent(message.getDocumentId(), k -> new ArrayList<>());
+        List<User> userList = activeUsersByDoc.get(message.getDocumentId());
+
+        userList.removeIf(u -> Objects.equals(u.getId(), message.getUserId()));
+        userList.add(targetUser);// Broadcast the updated list
+
+         activeUsersByDoc.put(message.getDocumentId(), userList);
+
+         UserUpdateMessage sendingMessage = new UserUpdateMessage();
+         sendingMessage.setUsers(new ArrayList<>(userList)); // Defensive copy
+         messagingTemplate.convertAndSend("/topic/users/" + message.getDocumentId(), sendingMessage);
     }
 
     @MessageMapping("/document/undo")
