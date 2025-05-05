@@ -93,16 +93,18 @@ public class EditorController {
         targetUser.setCursor(cursor);
 
 
-        activeUsersByDoc.computeIfAbsent(message.getDocumentId(), k -> new ArrayList<>());
-        List<User> userList = activeUsersByDoc.get(message.getDocumentId());
+        List<User> users = activeUsersByDoc.computeIfAbsent(message.getDocumentId(), k -> new ArrayList<>());
 
-        userList.removeIf(u -> Objects.equals(u.getId(), message.getUserId()));
-        userList.add(targetUser);// Broadcast the updated list
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getId().equals(targetUser.getId())) {
+                users.set(i, targetUser); // replace existing user
+            }
+        }
 
-         activeUsersByDoc.put(message.getDocumentId(), userList);
+         activeUsersByDoc.put(message.getDocumentId(), users);
 
          UserUpdateMessage sendingMessage = new UserUpdateMessage();
-         sendingMessage.setUsers(new ArrayList<>(userList)); // Defensive copy
+         sendingMessage.setUsers(new ArrayList<>(users)); // Defensive copy
          messagingTemplate.convertAndSend("/topic/users/" + message.getDocumentId(), sendingMessage);
     }
 
