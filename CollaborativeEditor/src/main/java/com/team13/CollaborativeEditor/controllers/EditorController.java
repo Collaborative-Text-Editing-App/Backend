@@ -4,9 +4,12 @@ import com.team13.CollaborativeEditor.dto.*;
 import com.team13.CollaborativeEditor.models.*;
 import com.team13.CollaborativeEditor.services.*;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -125,4 +128,19 @@ public class EditorController {
 //
         messagingTemplate.convertAndSend("/topic/document/" + doc.getId(), updateMsg);
     }
+    private final Map<String, List<User>> activeUsersByDoc = new ConcurrentHashMap<>();
+
+    @MessageMapping("/join")
+    public void handleJoin(UserJoinedMessage message) {
+        // Add user to the active list
+        String documentId = message.getDocumentId(); // Or extract from somewhere
+        User user = message.getUser();
+        activeUsersByDoc.computeIfAbsent(documentId, k -> new ArrayList<>()).add(user);
+
+        // Broadcast the updated list
+        UsersUpdateMessage sendingMessage = new UsersUpdateMessage();
+        sendingMessage.setUsers(activeUsersByDoc.get(documentId));
+        messagingTemplate.convertAndSend("/topic/users/" + documentId, sendingMessage);
+    }
+
 }
