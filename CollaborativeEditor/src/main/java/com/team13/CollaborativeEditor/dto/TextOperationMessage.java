@@ -4,9 +4,10 @@ public class TextOperationMessage {
     private String documentId;
     private String userId;
     private String operationType; // INSERT or DELETE
-    private char character;
+    private String text;
     private int position;
     private String nodeId; // For delete operations
+    private int length;
     
     // Getters and setters
     public String getDocumentId() {
@@ -33,17 +34,25 @@ public class TextOperationMessage {
         this.operationType = operationType;
     }
 
-    public char getCharacter() {
-        return character;
+    public String getText() {
+        return text;
     }
 
-    public void setCharacter(char character) {
-        this.character = character;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public int getPosition() {
         return position;
     }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }   
 
     public void setPosition(int position) {
         this.position = position;
