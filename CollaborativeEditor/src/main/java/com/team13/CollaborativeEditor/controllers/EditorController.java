@@ -46,7 +46,7 @@ public class EditorController {
                 );
             } else if ("DELETE".equals(message.getOperationType())) {
                 List<Node> nodesToDelete = new ArrayList<>();
-                if (message.getLength() == 1) {
+                if (message.getTextLength() == 1) {
                     Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition());
                     nodesToDelete.add(nodeToDelete);
                     if (nodeToDelete != null) {
@@ -57,7 +57,8 @@ public class EditorController {
                         );
                     }
                 } else {
-                    for (int i = 0; i < message.getLength(); i++) {
+                    System.out.println("Deleting " + message.getTextLength() + " characters at offset " + message.getPosition());
+                    for (int i = 0; i < message.getTextLength(); i++) {
                         Node nodeToDelete = doc.getCrdt().findNodeAtPosition(message.getPosition() + i);
                         nodesToDelete.add(nodeToDelete);
                     }

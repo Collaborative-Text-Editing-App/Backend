@@ -104,15 +104,18 @@ public class DocumentService {
     
     public void deleteCharacter(String documentId, String userId, List<Node> nodes) {
         Document doc = getDocument(documentId);
+        System.out.println("Nodes: " + nodes);
         if (doc != null) {
             List<Operation> operations = new ArrayList<>();
             for (Node node : nodes) {
                 doc.getCrdt().delete(node);
+                System.out.println("Deleted node: " + node);
                 doc.updateLastModified();
                 int userIdInt = Integer.parseInt(userId.hashCode() + "");
                 Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
                 operations.add(op); 
             }
+            System.out.println("Operations: " + operations);
             doc.addToHistory(operations);
         }
     }

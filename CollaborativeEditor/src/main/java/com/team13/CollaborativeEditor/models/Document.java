@@ -93,6 +93,10 @@ public class Document {
             redoStack.pop();
         }
         undoStack.push(operations);
+        System.out.println("Operations added to history: ");
+        for (Operation op : operations) {
+            System.out.println("Type: " + op.getType());
+        }
     }
 
     public void undo() {
