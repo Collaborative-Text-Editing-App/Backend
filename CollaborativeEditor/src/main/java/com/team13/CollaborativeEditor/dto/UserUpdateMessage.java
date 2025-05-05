@@ -4,12 +4,12 @@ import com.team13.CollaborativeEditor.models.User;
 
 import java.util.List;
 
-public class UsersUpdateMessage {
+public class UserUpdateMessage {
     private List<User> users;
 
-    public UsersUpdateMessage() {} // Required for Jackson
+    public UserUpdateMessage() {} // Required for Jackson
 
-    public UsersUpdateMessage(List<User> users) {
+    public UserUpdateMessage(List<User> users) {
         this.users = users;
     }
 

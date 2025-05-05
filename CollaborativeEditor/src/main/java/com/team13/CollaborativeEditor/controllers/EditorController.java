@@ -6,13 +6,9 @@ import com.team13.CollaborativeEditor.services.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import java.util.ArrayList;
@@ -138,7 +134,21 @@ public class EditorController {
         activeUsersByDoc.computeIfAbsent(documentId, k -> new ArrayList<>()).add(user);
 
         // Broadcast the updated list
-        UsersUpdateMessage sendingMessage = new UsersUpdateMessage();
+        UserUpdateMessage sendingMessage = new UserUpdateMessage();
+        sendingMessage.setUsers(activeUsersByDoc.get(documentId));
+        messagingTemplate.convertAndSend("/topic/users/" + documentId, sendingMessage);
+    }
+
+    @MessageMapping("/leave")
+    public void handleLeave(UserJoinedMessage message) {
+        // Add user to the active list
+        String documentId = message.getDocumentId(); // Or extract from somewhere
+        User user = message.getUser();
+        activeUsersByDoc.computeIfAbsent(documentId, k -> new ArrayList<>())
+                .removeIf(u -> u.getId().equals(user.getId()));
+
+        // Broadcast the updated list
+        UserUpdateMessage sendingMessage = new UserUpdateMessage();
         sendingMessage.setUsers(activeUsersByDoc.get(documentId));
         messagingTemplate.convertAndSend("/topic/users/" + documentId, sendingMessage);
     }
