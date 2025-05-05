@@ -92,16 +92,20 @@ public class EditorController {
 
     @MessageMapping("/document/undo")
     public void undo(TextOperationMessage message) {
+        // Convert userId string to integer
+        int userId = Integer.parseInt(message.getUserId().hashCode() + "");
         // Call your service to perform undo
-        documentService.undo(message.getDocumentId());
+        documentService.undo(message.getDocumentId(), userId);
         // Return the updated document or a status message
         broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
     }
 
     @MessageMapping("/document/redo")
     public void redo(TextOperationMessage message) {
-        // Call your service to perform undo
-        documentService.redo(message.getDocumentId());
+        // Convert userId string to integer
+        int userId = Integer.parseInt(message.getUserId().hashCode() + "");
+        // Call your service to perform redo
+        documentService.redo(message.getDocumentId(), userId);
         // Return the updated document or a status message
         broadcastDocumentUpdate(documentService.getDocument(message.getDocumentId()));
     }

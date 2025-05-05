@@ -96,9 +96,7 @@ public class DocumentService {
                     operations.add(new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis()));
                 }
             }
-            doc.addToHistory(operations);
-            
-            // Add operation to history for undo/redo
+            doc.addToHistory(operations, Integer.parseInt(userId.hashCode() + ""));
         }
     }
     
@@ -116,21 +114,21 @@ public class DocumentService {
                 operations.add(op); 
             }
             System.out.println("Operations: " + operations);
-            doc.addToHistory(operations);
+            doc.addToHistory(operations, Integer.parseInt(userId.hashCode() + ""));
         }
     }
 
-    public void undo(String documentId) {
+    public void undo(String documentId, int userId) {
         Document doc = getDocument(documentId);
         if (doc != null) {
-            doc.undo();
+            doc.undo(userId);
         }
     }
 
-    public void redo(String documentId) {
+    public void redo(String documentId, int userId) {
         Document doc = getDocument(documentId);
         if (doc != null) {
-            doc.redo();
+            doc.redo(userId);
         }
     }
 }

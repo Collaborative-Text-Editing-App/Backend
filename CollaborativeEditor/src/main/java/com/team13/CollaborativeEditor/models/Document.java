@@ -16,8 +16,8 @@ public class Document {
     private List<String> authorizedUsers;
     private List<Operation> history = new ArrayList<>();
     private int historyPointer = -1;
-    private Stack<List<Operation>> undoStack = new Stack<>();
-    private Stack<List<Operation>> redoStack = new Stack<>();
+    private Map<Integer, Stack<List<Operation>>> undoStacks = new HashMap<>();
+    private Map<Integer, Stack<List<Operation>>> redoStacks = new HashMap<>();
 
     public Document() {
         this.id = UUID.randomUUID().toString();
@@ -87,64 +87,85 @@ public class Document {
         return title;
     }
 
-    public void addToHistory(List<Operation> operations) {
-        // Clear any redoable operations
-        while (!redoStack.empty()) {
-            redoStack.pop();
+    public void addToHistory(List<Operation> operations, int userId) {
+        // Initialize stacks for this user if they don't exist
+        if (!undoStacks.containsKey(userId)) {
+            undoStacks.put(userId, new Stack<>());
+            redoStacks.put(userId, new Stack<>());
         }
-        undoStack.push(operations);
-        System.out.println("Operations added to history: ");
+        
+        // Clear any redoable operations for this user
+        while (!redoStacks.get(userId).empty()) {
+            redoStacks.get(userId).pop();
+        }
+        
+        undoStacks.get(userId).push(operations);
+        System.out.println("Operations added to history for user " + userId + ": ");
         for (Operation op : operations) {
             System.out.println("Type: " + op.getType());
         }
     }
 
-    public void undo() {
-        if (!undoStack.isEmpty()) {
-            List<Operation> operations = undoStack.pop();
-            List<Operation> newOperations = new ArrayList<>();
-            for (Operation op : operations) {
-                if (op.getType() == OperationType.DELETE) {
-                    // apply inverse of op
-                    getCrdt().delete(op.getNode());
-                    updateLastModified();
-                    Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
-                    newOperations.add(newop);
-                }
-                else if (op.getType() == OperationType.INSERT) {
-                    Node node = op.getNode();
-                    node.setTombstone(false);
-                    updateLastModified();
-                    Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
-                    newOperations.add(newop);
-                }
-            }
-            redoStack.push(newOperations);
+    public void undo(int userId) {
+        if (!undoStacks.containsKey(userId) || undoStacks.get(userId).isEmpty()) {
+            return;
         }
+
+        List<Operation> operations = undoStacks.get(userId).pop();
+        List<Operation> newOperations = new ArrayList<>();
+        
+        for (Operation op : operations) {
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                newOperations.add(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                newOperations.add(newop);
+            }
+        }
+        
+        if (!redoStacks.containsKey(userId)) {
+            redoStacks.put(userId, new Stack<>());
+        }
+        redoStacks.get(userId).push(newOperations);
     }
 
-    public void redo() {
-        if (!redoStack.isEmpty()) {
-            List<Operation> operations = redoStack.pop();
-            List<Operation> newOperations = new ArrayList<>();
-            for (Operation op : operations) {
-                if (op.getType() == OperationType.DELETE) {
-                    // apply inverse of op
-                    getCrdt().delete(op.getNode());
-                    updateLastModified();
-                    Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
-                    newOperations.add(newop);
-                }
-                else if (op.getType() == OperationType.INSERT) {
-                    Node node = op.getNode();
-                    node.setTombstone(false);
-                    updateLastModified();
-                    Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
-                    newOperations.add(newop);
-                }
-            }
-            undoStack.push(newOperations);
+    public void redo(int userId) {
+        if (!redoStacks.containsKey(userId) || redoStacks.get(userId).isEmpty()) {
+            return;
         }
+
+        List<Operation> operations = redoStacks.get(userId).pop();
+        List<Operation> newOperations = new ArrayList<>();
+        
+        for (Operation op : operations) {
+            if (op.getType() == OperationType.DELETE) {
+                // apply inverse of op
+                getCrdt().delete(op.getNode());
+                updateLastModified();
+                Operation newop = new Operation(OperationType.INSERT, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                newOperations.add(newop);
+            }
+            else if (op.getType() == OperationType.INSERT) {
+                Node node = op.getNode();
+                node.setTombstone(false);
+                updateLastModified();
+                Operation newop = new Operation(OperationType.DELETE, op.getNode(), op.getUserId(), System.currentTimeMillis());
+                newOperations.add(newop);
+            }
+        }
+        
+        if (!undoStacks.containsKey(userId)) {
+            undoStacks.put(userId, new Stack<>());
+        }
+        undoStacks.get(userId).push(newOperations);
     }
 
     // Add to Document class
@@ -152,9 +173,12 @@ public class Document {
         return authorizedUsers.contains(userId);
     }
 
-    public void performOperation(List<Operation> ops) {
-        undoStack.push(ops);
-        redoStack.clear();
-        // apply op to document
+    public void performOperation(List<Operation> ops, int userId) {
+        if (!undoStacks.containsKey(userId)) {
+            undoStacks.put(userId, new Stack<>());
+            redoStacks.put(userId, new Stack<>());
+        }
+        undoStacks.get(userId).push(ops);
+        redoStacks.get(userId).clear();
     }
 }
