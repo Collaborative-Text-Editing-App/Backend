@@ -43,6 +43,12 @@ public class DocumentService {
         return toDTO(doc);
     }
 
+    public void joinDocument(Document doc, UserRole role) {
+        User user = new User(doc.getActiveUsers().size(), role);
+        doc.addUser(user);
+        documents.put(doc.getId(), doc);
+    }
+
     public DocumentUpdateMessage toDTO(Document doc) {
         String content = doc.getCrdt().getVisibleText(); // Convert CRDT to string for frontend
         Timestamp lastModified = doc.getLastModified();
