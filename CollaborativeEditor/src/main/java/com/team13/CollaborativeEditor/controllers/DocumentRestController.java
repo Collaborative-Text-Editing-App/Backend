@@ -80,15 +80,15 @@ public class DocumentRestController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/api/document/undo")
-    public ResponseEntity<?> undo(@RequestParam String documentId) {
-        documentService.undo(documentId);
-        return ResponseEntity.ok().build();
-    }
+    // @PostMapping("/api/document/undo")
+    // public ResponseEntity<?> undo(@RequestParam String documentId, @RequestParam String userId) {
+    //     documentService.undo(documentId, userId);
+    //     return ResponseEntity.ok().build();
+    // }
 
-    @PostMapping("/api/document/redo")
-    public ResponseEntity<?> redo(@RequestParam String documentId) {
-        documentService.redo(documentId);
-        return ResponseEntity.ok().build();
-    }
+    // @PostMapping("/api/document/redo")
+    // public ResponseEntity<?> redo(@RequestParam String documentId) {
+    //     documentService.redo(documentId);
+    //     return ResponseEntity.ok().build();
+    // }
 }

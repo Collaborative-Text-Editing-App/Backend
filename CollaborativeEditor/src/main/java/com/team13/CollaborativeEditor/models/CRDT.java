@@ -53,7 +53,22 @@ public class CRDT {
     }
 
     public void delete(Node node) {
-        if (node != null) node.setTombstone(true);
+        if (node != null) {
+            // If the node has children, move them up to the parent
+            if (!node.getChildren().isEmpty()) {
+                Node parent = node.getParent();
+                if (parent != null) {
+                    // Move all children to the parent
+                    for (Node child : node.getChildren()) {
+                        child.setParent(parent);
+                        parent.getChildren().add(child);
+                    }
+                    // Clear the children list of the deleted node
+                    node.getChildren().clear();
+                }
+            }
+            node.setTombstone(true);
+        }
     }
 
     public String getVisibleText() {

@@ -96,38 +96,39 @@ public class DocumentService {
                     operations.add(new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis()));
                 }
             }
-            doc.addToHistory(operations);
-            
-            // Add operation to history for undo/redo
+            doc.addToHistory(operations, Integer.parseInt(userId.hashCode() + ""));
         }
     }
     
     public void deleteCharacter(String documentId, String userId, List<Node> nodes) {
         Document doc = getDocument(documentId);
+        System.out.println("Nodes: " + nodes);
         if (doc != null) {
             List<Operation> operations = new ArrayList<>();
             for (Node node : nodes) {
                 doc.getCrdt().delete(node);
+                System.out.println("Deleted node: " + node);
                 doc.updateLastModified();
                 int userIdInt = Integer.parseInt(userId.hashCode() + "");
                 Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
                 operations.add(op); 
             }
-            doc.addToHistory(operations);
+            System.out.println("Operations: " + operations);
+            doc.addToHistory(operations, Integer.parseInt(userId.hashCode() + ""));
         }
     }
 
-    public void undo(String documentId) {
+    public void undo(String documentId, int userId) {
         Document doc = getDocument(documentId);
         if (doc != null) {
-            doc.undo();
+            doc.undo(userId);
         }
     }
 
-    public void redo(String documentId) {
+    public void redo(String documentId, int userId) {
         Document doc = getDocument(documentId);
         if (doc != null) {
-            doc.redo();
+            doc.redo(userId);
         }
     }
 }
