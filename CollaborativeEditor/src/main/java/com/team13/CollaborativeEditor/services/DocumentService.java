@@ -3,6 +3,8 @@ package com.team13.CollaborativeEditor.services;
 import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
 import com.team13.CollaborativeEditor.models.*;
 import org.springframework.stereotype.Service;
+import com.team13.CollaborativeEditor.models.User;
+import com.team13.CollaborativeEditor.models.CRDT;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ public class DocumentService {
     }
 
     public DocumentUpdateMessage toDTO(Document doc) {
-        String content = doc.getCrdt().getVisibleText(); // Convert CRDT to string for frontend
+        String content = doc.getCrdt().getVisibleText();
         Timestamp lastModified = doc.getLastModified();
 
         return new DocumentUpdateMessage(

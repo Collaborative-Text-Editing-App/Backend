@@ -1,5 +1,6 @@
 package com.team13.CollaborativeEditor.dto;
 
+import com.team13.CollaborativeEditor.models.User;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;

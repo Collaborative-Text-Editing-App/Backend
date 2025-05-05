@@ -13,13 +13,7 @@ public class Document {
     private final String editorCode;
     private final String viewerCode;
     private String title;
-    private CRDT crdt;
-    private Map<String, User> activeUsers;
     private List<String> authorizedUsers;
-    private long createdAt;
-    private long lastModified;
-    private String editorCode;
-    private String viewerCode;
     private List<Operation> history = new ArrayList<>();
     private int historyPointer = -1;
     private Stack<List<Operation>> undoStack = new Stack<>();
