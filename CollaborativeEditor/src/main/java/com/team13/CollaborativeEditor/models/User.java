@@ -14,6 +14,7 @@ public class User {
 
     public User(int id, UserRole role) {
         this.userId = id;
+        this.id = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
         this.role = role;
         this.cursor = new Cursor(0);
         this.lastSeen = new Timestamp(System.currentTimeMillis());
