@@ -3,6 +3,8 @@ package com.team13.CollaborativeEditor.services;
 import com.team13.CollaborativeEditor.dto.DocumentUpdateMessage;
 import com.team13.CollaborativeEditor.models.*;
 import org.springframework.stereotype.Service;
+import com.team13.CollaborativeEditor.models.User;
+import com.team13.CollaborativeEditor.models.CRDT;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -44,7 +46,7 @@ public class DocumentService {
     }
 
     public DocumentUpdateMessage toDTO(Document doc) {
-        String content = doc.getCrdt().getVisibleText(); // Convert CRDT to string for frontend
+        String content = doc.getCrdt().getVisibleText();
         Timestamp lastModified = doc.getLastModified();
 
         return new DocumentUpdateMessage(
@@ -71,29 +73,41 @@ public class DocumentService {
         return new ArrayList<>(documents.values());
     }
     
-    public void insertCharacter(String documentId, String userId, char character, Node parent) {
+    public void insertCharacter(String documentId, String userId, String text, Node parent) {
         Document doc = getDocument(documentId);
-        if (doc != null) {
-            int userIdInt = Integer.parseInt(userId.hashCode() + "");
-            Node node = doc.getCrdt().insert(parent, character, userIdInt, System.currentTimeMillis());
-            doc.updateLastModified();
+        if (doc != null /*&& doc.isAuthorized(userId)*/) {
+            List<Operation> operations = new ArrayList<>();
+            if (text.length() == 1) {
+                int userIdInt = Integer.parseInt(userId.hashCode() + "");
+                Node node = doc.getCrdt().insert(parent, text.charAt(0), userIdInt, System.currentTimeMillis());
+                doc.updateLastModified();
+                operations.add(new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis()));
+            } else {
+                for (int i = 0; i < text.length(); i++) {
+                    int userIdInt = Integer.parseInt(userId.hashCode() + "");
+                    Node node = doc.getCrdt().insert(parent, text.charAt(i), userIdInt, System.currentTimeMillis());
+                    doc.updateLastModified();
+                    operations.add(new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis()));
+                }
+            }
+            doc.addToHistory(operations);
             
             // Add operation to history for undo/redo
-            Operation op = new Operation(OperationType.DELETE, node, userIdInt, System.currentTimeMillis());
-            doc.addToHistory(op);
         }
     }
     
-    public void deleteCharacter(String documentId, String userId, Node node) {
+    public void deleteCharacter(String documentId, String userId, List<Node> nodes) {
         Document doc = getDocument(documentId);
         if (doc != null) {
-            doc.getCrdt().delete(node);
-            doc.updateLastModified();
-            
-            // Add operation to history for undo/redo
-            int userIdInt = Integer.parseInt(userId.hashCode() + "");
-            Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
-            doc.addToHistory(op);
+            List<Operation> operations = new ArrayList<>();
+            for (Node node : nodes) {
+                doc.getCrdt().delete(node);
+                doc.updateLastModified();
+                int userIdInt = Integer.parseInt(userId.hashCode() + "");
+                Operation op = new Operation(OperationType.INSERT, node, userIdInt, System.currentTimeMillis());
+                operations.add(op); 
+            }
+            doc.addToHistory(operations);
         }
     }
 
