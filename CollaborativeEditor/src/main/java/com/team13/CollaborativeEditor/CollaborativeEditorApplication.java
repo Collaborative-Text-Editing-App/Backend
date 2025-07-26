@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CollaborativeEditorApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CollaborativeEditorApplication.class, args);
+		SpringApplication.run(CollaborativeEditor?Application.class, args);
 	}
 
 }
